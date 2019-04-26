@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 
 	"cloud.google.com/go/bigquery"
@@ -20,19 +21,24 @@ func main() {
 		fmt.Println(err)
 	}
 
-	q := client.Query(`
-		SELECT contracts.address, COUNT(1) AS tx_count
-		FROM ` + "`bigquery-public-data.ethereum_blockchain.contracts`" + ` AS contracts
-		JOIN ` + "`bigquery-public-data.ethereum_blockchain.transactions`" + ` AS transactions ON (transactions.to_address = contracts.address)
-		WHERE contracts.is_erc721 = TRUE
-		GROUP BY contracts.address
-		ORDER BY tx_count DESC
-		LIMIT 10
-	`)
+	//address := "0x9675Bc053B9Eb84EA23Dbced85F2B66Bd9daCa18"
+	var query bytes.Buffer
+
+	//query.WriteString(fmt.Sprintf("SELECT hash, value, receipt_gas_used "))
+	query.WriteString(fmt.Sprintf("SELECT hash "))
+	query.WriteString(fmt.Sprintf("FROM `bigquery-public-data.ethereum_blockchain.transactions` "))
+	//query.WriteString(fmt.Sprintf("WHERE from_address='%s' or to_address='%s' ", address, address))
+	//query.WriteString(fmt.Sprintf("ORDER BY block_number "))
+	query.WriteString(fmt.Sprintf("LIMIT 10 "))
+
+	fmt.Print(query.String())
+	q := client.Query(query.String())
 
 	it, err := q.Read(ctx)
 	if err != nil {
 		// TODO: Handle error.
+	} else {
+		fmt.Println("succeeded")
 	}
 
 	for {
